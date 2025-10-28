@@ -1,4 +1,4 @@
-name: Generate Map
+name: Generate Maryland Energy Map
 
 on:
   push:
@@ -7,9 +7,13 @@ on:
 
 jobs:
   build:
+    permissions:
+      contents: write  # ← ADD THIS LINE
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -20,14 +24,13 @@ jobs:
       run: |
         pip install folium pandas requests
 
-    - name: Run script
-      run: |
-        ls -la  # Debug: show files
-        python maryland_map.py
+    - name: Run map generator
+      run: python maryland_map.py
 
-    - name: Deploy
+    - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: .
-        publish_branch: gh-pages
+        keep_files: true
+        force_orphan: true

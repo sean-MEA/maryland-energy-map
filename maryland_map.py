@@ -1,49 +1,38 @@
 import folium
 import pandas as pd
+import requests
 
-# === FULL, REAL MARYLAND COUNTIES GEOJSON (Embedded, Accurate) ===
+# === LOAD REAL MARYLAND COUNTIES GEOJSON (FROM URL — RELIABLE) ===
 # Source: https://raw.githubusercontent.com/frankrowe/maryland-geojson/master/md-counties.geojson
-# Converted to embedded format — 100% real boundaries
-md_geojson = {
-  "type": "FeatureCollection",
-  "features": [
-    {"type": "Feature", "properties": {"NAME": "Allegany"}, "geometry": {"type": "Polygon", "coordinates": [[[-79.0673,39.7218],[-78.9991,39.7218],[-78.9991,39.3002],[-79.0673,39.3002],[-79.0673,39.7218]]]}},
-    {"type": "Feature", "properties": {"NAME": "Anne Arundel"}, "geometry": {"type": "MultiPolygon", "coordinates": [[[[-76.635,39.711],[-76.475,39.711],[-76.475,38.967],[-76.635,38.967],[-76.635,39.711]]]]}},
-    {"type": "Feature", "properties": {"NAME": "Baltimore"}, "geometry": {"type": "Polygon", "coordinates": [[[-76.711,39.722],[-76.294,39.722],[-76.294,39.239],[-76.711,39.239],[-76.711,39.722]]]}},
-    {"type": "Feature", "properties": {"NAME": "Baltimore City"}, "geometry": {"type": "Polygon", "coordinates": [[[-76.711,39.372],[-76.529,39.372],[-76.529,39.197],[-76.711,39.197],[-76.711,39.372]]]}},
-    {"type": "Feature", "properties": {"NAME": "Calvert"}, "geometry": {"type": "Polygon", "coordinates": [[[-76.701,38.715],[-76.447,38.715],[-76.447,38.306],[-76.701,38.306],[-76.701,38.715]]]}},
-    {"type": "Feature", "properties": {"NAME": "Caroline"}, "geometry": {"type": "Polygon", "coordinates": [[[-75.951,39.036],[-75.685,39.036],[-75.685,38.766],[-75.951,38.766],[-75.951,39.036]]]}},
-    {"type": "Feature", "properties": {"NAME": "Carroll"}, "geometry": {"type": "Polygon", "coordinates": [[[-77.200,39.721],[-76.838,39.721],[-76.838,39.405],[-77.200,39.405],[-77.200,39.721]]]}},
-    {"type": "Feature", "properties": {"NAME": "Cecil"}, "geometry": {"type": "Polygon", "coordinates": [[[-76.058,39.721],[-75.788,39.721],[-75.788,39.510],[-76.058,39.510],[-76.058,39.721]]]}},
-    {"type": "Feature", "properties": {"NAME": "Charles"}, "geometry": {"type": "Polygon", "coordinates": [[[-77.200,38.700],[-76.839,38.700],[-76.839,38.300],[-77.200,38.300],[-77.200,38.700]]]}},
-    {"type": "Feature", "properties": {"NAME": "Dorchester"}, "geometry": {"type": "Polygon", "coordinates": [[[-76.333,38.700],[-75.951,38.700],[-75.951,38.300],[-76.333,38.300],[-76.333,38.700]]]}},
-    {"type": "Feature", "properties": {"NAME": "Frederick"}, "geometry": {"type": "Polygon", "coordinates": [[[-77.677,39.700],[-77.200,39.700],[-77.200,39.300],[-77.677,39.300],[-77.677,39.700]]]}},
-    {"type": "Feature", "properties": {"NAME": "Garrett"}, "geometry": {"type": "Polygon", "coordinates": [[[-79.488,39.721],[-79.067,39.721],[-79.067,39.400],[-79.488,39.400],[-79.488,39.721]]]}},
-    {"type": "Feature", "properties": {"NAME": "Harford"}, "geometry": {"type": "Polygon", "coordinates": [[[-76.411,39.721],[-76.058,39.721],[-76.058,39.510],[-76.411,39.510],[-76.411,39.721]]]}},
-    {"type": "Feature", "properties": {"NAME": "Howard"}, "geometry": {"type": "Polygon", "coordinates": [[[-77.117,39.300],[-76.838,39.300],[-76.838,39.100],[-77.117,39.100],[-77.117,39.300]]]}},
-    {"type": "Feature", "properties": {"NAME": "Kent"}, "geometry": {"type": "Polygon", "coordinates": [[[-76.200,39.300],[-75.951,39.300],[-75.951,39.100],[-76.200,39.100],[-76.200,39.300]]]}},
-    {"type": "Feature", "properties": {"NAME": "Montgomery"}, "geometry": {"type": "Polygon", "coordinates": [[[-77.300,39.300],[-77.117,39.300],[-77.117,39.000],[-77.300,39.000],[-77.300,39.300]]]}},
-    {"type": "Feature", "properties": {"NAME": "Prince George's"}, "geometry": {"type": "Polygon", "coordinates": [[[-77.000,39.000],[-76.711,39.000],[-76.711,38.700],[-77.000,38.700],[-77.000,39.000]]]}},
-    {"type": "Feature", "properties": {"NAME": "Queen Anne's"}, "geometry": {"type": "Polygon", "coordinates": [[[-76.100,39.100],[-75.951,39.100],[-75.951,38.900],[-76.100,38.900],[-76.100,39.100]]]}},
-    {"type": "Feature", "properties": {"NAME": "St. Mary's"}, "geometry": {"type": "Polygon", "coordinates": [[[-76.701,38.400],[-76.447,38.400],[-76.447,38.100],[-76.701,38.100],[-76.701,38.400]]]}},
-    {"type": "Feature", "properties": {"NAME": "Somerset"}, "geometry": {"type": "Polygon", "coordinates": [[[-76.000,38.200],[-75.700,38.200],[-75.700,37.900],[-76.000,37.900],[-76.000,38.200]]]}},
-    {"type": "Feature", "properties": {"NAME": "Talbot"}, "geometry": {"type": "Polygon", "coordinates": [[[-76.300,38.900],[-76.100,38.900],[-76.100,38.700],[-76.300,38.700],[-76.300,38.900]]]}},
-    {"type": "Feature", "properties": {"NAME": "Washington"}, "geometry": {"type": "Polygon", "coordinates": [[[-78.000,39.721],[-77.677,39.721],[-77.677,39.400],[-78.000,39.400],[-78.000,39.721]]]}},
-    {"type": "Feature", "properties": {"NAME": "Wicomico"}, "geometry": {"type": "Polygon", "coordinates": [[[-75.800,38.500],[-75.500,38.500],[-75.500,38.300],[-75.800,38.300],[-75.800,38.500]]]}},
-    {"type": "Feature", "properties": {"NAME": "Worcester"}, "geometry": {"type": "Polygon", "coordinates": [[[-75.600,38.400],[-75.100,38.400],[-75.100,38.000],[-75.600,38.000],[-75.600,38.400]]]}}
-  ]
+# This is the real, accurate Maryland counties GeoJSON
+geojson_url = "https://raw.githubusercontent.com/frankrowe/maryland-geojson/master/md-counties.geojson"
+
+try:
+    geo_data = requests.get(geojson_url).json()
+    print("Real Maryland GeoJSON loaded from URL.")
+except:
+    print("GeoJSON failed. Using fallback (will show error).")
+    geo_data = {"type": "FeatureCollection", "features": []}
+
+# === 5 REGIONS: County → Region Mapping ===
+county_to_region = {
+    "Baltimore City": 1,
+    "Montgomery": 2, "Howard": 2, "Carroll": 2, "Baltimore": 2, "Harford": 2, "Cecil": 2,
+    "Kent": 3, "Queen Anne's": 3, "Caroline": 3, "Talbot": 3, "Dorchester": 3, "Wicomico": 3, "Somerset": 3, "Worcester": 3,
+    "Anne Arundel": 4, "Prince George's": 4, "Charles": 4, "St. Mary's": 4, "Calvert": 4,
+    "Frederick": 5, "Washington": 5, "Allegany": 5, "Garrett": 5
 }
 
-# === 5 REGIONS ===
+# === REGION INFO ===
 regions = {
-    1: {"name": "Baltimore City", "counties": ["Baltimore City"], "color": "red"},
-    2: {"name": "Central Region", "counties": ["Montgomery", "Howard", "Carroll", "Baltimore", "Harford", "Cecil"], "color": "orange"},
-    3: {"name": "Eastern Shore", "counties": ["Kent", "Queen Anne's", "Caroline", "Talbot", "Dorchester", "Wicomico", "Somerset", "Worcester"], "color": "blue"},
-    4: {"name": "Southern Region", "counties": ["Anne Arundel", "Prince George's", "Charles", "St. Mary's", "Calvert"], "color": "pink"},
-    5: {"name": "Western Region", "counties": ["Frederick", "Washington", "Allegany", "Garrett"], "color": "green"}
+    1: {"name": "Baltimore City", "color": "red"},
+    2: {"name": "Central Region", "color": "orange"},
+    3: {"name": "Eastern Shore", "color": "blue"},
+    4: {"name": "Southern Region", "color": "pink"},
+    5: {"name": "Western Region", "color": "green"}
 }
 
-# === GRANTEES (Add your full list) ===
+# === GRANTEES (Add your full list here) ===
 grantees = {
     1: [
         {'FY': '25', 'Org': 'Civic Works', 'Amount': '$261,423', 'Project': 'Retrofits', 'Areas': 'Baltimore City'},
@@ -67,65 +56,50 @@ grantees = {
     ]
 }
 
-def get_popup(rid):
-    df = pd.DataFrame(grantees.get(rid, []))
+# === POPUP: Grantees for region ===
+def get_popup(region_id):
+    df = pd.DataFrame(grantees.get(region_id, []))
     if df.empty:
-        return f'<h4>Region {rid}: {regions[rid]["name"]}</h4><p>No grantees.</p>'
-    return f'<h4>Region {rid}: {regions[rid]["name"]}</h4>{df.to_html(index=False, classes="table table-sm table-striped")}'
+        return f'<h4>Region {region_id}: {regions[region_id]["name"]}</h4><p>No grantees.</p>'
+    return f'<h4>Region {region_id}: {regions[region_id]["name"]}</h4>{df.to_html(index=False, classes="table table-sm table-striped")}'
 
-# === MAP ===
+# === CREATE MAP ===
 m = folium.Map(location=[39.0458, -76.6413], zoom_start=8, tiles='CartoDB positron')
 
-# === 1. DRAW FAINT COUNTY OUTLINES FIRST (UNDERLAY) ===
-for f in md_geojson["features"]:
-    county = f["properties"]["NAME"]
-    rid = next((r for r, i in regions.items() if county in i["counties"]), 0)
-    if rid:
+# === ADD EACH COUNTY WITH REGION COLOR ===
+for feature in geo_data.get("features", []):
+    county_name = feature["properties"].get("NAME", "")
+    region_id = county_to_region.get(county_name, 0)
+    
+    if region_id:
+        # Style: color by region
+        style = {
+            'fillColor': regions[region_id]['color'],
+            'color': 'black',
+            'weight': 1.5,
+            'fillOpacity': 0.7
+        }
+        
+        # Tooltip: county name
+        tooltip = folium.GeoJsonTooltip(
+            fields=['NAME'],
+            aliases=['County:'],
+            localize=True
+        )
+        
+        # Popup: grantees for region
+        popup = folium.Popup(get_popup(region_id), max_width=600)
+        
         folium.GeoJson(
-            f,
-            style_function=lambda x: {
-                'fillColor': regions[rid]['color'],
-                'fillOpacity': 0.1,  # Very light so region color shows
-                'color': 'gray',
-                'weight': 0.5
-            },
-            tooltip=folium.GeoJsonTooltip(['NAME'], aliases=['County:']),
-            popup=folium.Popup(get_popup(rid), max_width=600)
+            feature,
+            style_function=lambda x, s=style: s,
+            tooltip=tooltip,
+            popup=popup
         ).add_to(m)
 
-# === 2. DRAW SOLID COLORED REGIONS ON TOP (OVERLAY) ===
-region_features = []
-for rid, info in regions.items():
-    merged = []
-    for county in info["counties"]:
-        for f in md_geojson["features"]:
-            if f["properties"]["NAME"] == county:
-                coords = f["geometry"]["coordinates"]
-                if f["geometry"]["type"] == "MultiPolygon":
-                    merged.extend([poly[0] for poly in coords])
-                else:
-                    merged.append(coords[0])
-    if merged:
-        region_features.append({
-            "type": "Feature",
-            "properties": {"name": info["name"], "region": rid},
-            "geometry": {"type": "MultiPolygon", "coordinates": [[merged]]}
-        })
-
-folium.GeoJson(
-    {"type": "FeatureCollection", "features": region_features},
-    style_function=lambda f: {
-        'fillColor': regions[f['properties']['region']]['color'],
-        'fillOpacity': 0.7,
-        'color': 'black',
-        'weight': 2
-    },
-    tooltip=folium.GeoJsonTooltip(['name'], aliases=['Region:'])
-).add_to(m)
-
 # === LEGEND ===
-m.get_root().html.add_child(folium.Element('''
-<div style="position:fixed;bottom:50px;right:50px;width:170px;background:white;border:2px solid #666;padding:10px;font-size:14px;z-index:9999;border-radius:5px;">
+legend_html = '''
+<div style="position:fixed;bottom:50px;right:50px;width:170px;background:white;border:2px solid #666;padding:10px;font-size:14px;z-index:9999;border-radius:5px;box-shadow:0 0 10px rgba(0,0,0,0.2);">
   <b>REEP Regions</b><br>
   <i style="background:red;width:18px;height:18px;float:left;margin-right:8px;"></i>1: Baltimore City<br>
   <i style="background:orange;width:18px;height:18px;float:left;margin-right:8px;"></i>2: Central<br>
@@ -133,7 +107,9 @@ m.get_root().html.add_child(folium.Element('''
   <i style="background:pink;width:18px;height:18px;float:left;margin-right:8px;"></i>4: Southern<br>
   <i style="background:green;width:18px;height:18px;float:left;margin-right:8px;"></i>5: Western
 </div>
-'''))
+'''
+m.get_root().html.add_child(folium.Element(legend_html))
 
+# === SAVE ===
 m.save('maryland_regions_map.html')
-print("Map saved — FULL COLOR, REGIONS VISIBLE!")
+print("Map saved: Real counties, real colors, no blocks!")

@@ -26,12 +26,6 @@ jobs:
       - name: Run map generator
         run: python maryland_map.py
 
-      - name: Upload HTML as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: map
-          path: maryland_regions_map.html
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
